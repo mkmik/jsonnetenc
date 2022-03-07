@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/mkmik/multierror"
-
-	"github.com/juju/errors"
 )
 
 const (
@@ -51,7 +49,7 @@ func (s Sum) MarshalJSON() ([]byte, error) {
 	for _, e := range s {
 		b, err := marshal(e)
 		if err != nil {
-			return nil, errors.Trace(err)
+			return nil, err
 		}
 		l = append(l, bytes.TrimSpace(b))
 	}
@@ -68,12 +66,12 @@ type Index struct {
 func (i Index) MarshalJSON() ([]byte, error) {
 	l, err := marshal(i.LHS)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 
 	r, err := marshal(i.RHS)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 
 	return wrap(string(fmt.Sprintf("%s[%s]", string(bytes.TrimSpace(l)), string(bytes.TrimSpace(r))))), nil
@@ -89,7 +87,7 @@ type Member struct {
 func (m Member) MarshalJSON() ([]byte, error) {
 	l, err := marshal(m.LHS)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 
 	return wrap(string(fmt.Sprintf("%s.%s", string(bytes.TrimSpace(l)), m.Field))), nil
@@ -109,7 +107,7 @@ func unwrap(b []byte) ([]byte, error) {
 		return []byte(s)
 	})
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 	return r, nil
 }
@@ -121,7 +119,7 @@ func unwrap(b []byte) ([]byte, error) {
 func Marshal(v interface{}) ([]byte, error) {
 	b, err := marshal(v)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 	b = superHack.ReplaceAll(b, []byte("$1:"))
 	return jsonnetFmt(b)
@@ -132,10 +130,10 @@ func marshal(v interface{}) ([]byte, error) {
 	enc := json.NewEncoder(&buf)
 	enc.SetIndent("", "    ")
 	if err := enc.Encode(v); err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 	b, err := unwrap(buf.Bytes())
-	return b, errors.Trace(err)
+	return b, err
 }
 
 func jsonnetFmt(b []byte) ([]byte, error) {
