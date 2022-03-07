@@ -1,6 +1,6 @@
 module github.com/mkmik/jsonnetenc
 
-go 1.16
+go 1.17
 
 require (
 	github.com/juju/errors v0.0.0-20220203013757-bd733f3c86b9
