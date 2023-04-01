@@ -59,23 +59,23 @@ func ExampleMarshal() {
 	fmt.Printf("%s\n", string(b))
 	// Output:
 	// {
-	//     "name": "foo",
-	//     "stuff": (import "bar"),
-	//     "stuffstr": (importstr "bar.txt"),
-	//     "stuffbin": (importbin "bar.bin"),
-	//     "var": baz,
-	//     "sum": 40+x+"foo"+(import "stuff")+{
-	//     "x": 42
-	//},
-	//     "index": a["k"+"e"+"y"],
-	//     "dot": a.field,
-	//     "fieldQuot": a["1f"],
-	//     hack+: "foo",
-	//     "selffoo": self.foo,
-	//     "selfquot": self["foo-bar"],
-	//     "selfres": self["self"],
-	//     "superfoo": super.foo,
-	//     "superquot": super["foo-bar"],
-	//     "superres": super["self"]
+	//   name: 'foo',
+	//   stuff: (import 'bar'),
+	//   stuffstr: (importstr 'bar.txt'),
+	//   stuffbin: (importbin 'bar.bin'),
+	//   var: baz,
+	//   sum: 40 + x + 'foo' + (import 'stuff') + {
+	//     x: 42,
+	//   },
+	//   index: a['k' + 'e' + 'y'],
+	//   dot: a.field,
+	//   fieldQuot: a['1f'],
+	//   hack+: 'foo',
+	//   selffoo: self.foo,
+	//   selfquot: self['foo-bar'],
+	//   selfres: self['self'],
+	//   superfoo: super.foo,
+	//   superquot: super['foo-bar'],
+	//   superres: super['self'],
 	// }
 }

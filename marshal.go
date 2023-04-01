@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/google/go-jsonnet/formatter"
 	"github.com/mkmik/multierror"
 )
 
@@ -58,7 +59,7 @@ type Self string
 
 // MarshalJSON implements the json.Marshaler interface
 func (s Self) MarshalJSON() ([]byte, error) {
-	return wrap(fieldRef("self", string(s))), nil
+	return wrap(fmt.Sprintf("self[%q]", s)), nil
 }
 
 // Super with value "foo" renders as "super.foo".
@@ -66,7 +67,14 @@ type Super string
 
 // MarshalJSON implements the json.Marshaler interface
 func (s Super) MarshalJSON() ([]byte, error) {
-	return wrap(fieldRef("super", string(s))), nil
+	// format.Format doesn't convert `super["foo"]` into `super.foo`
+	// like it does for any other field.
+
+	if !requiresEscaping(string(s)) {
+		return wrap(fmt.Sprintf("super.%s", s)), nil
+	} else {
+		return wrap(fmt.Sprintf("super[%q]", s)), nil
+	}
 }
 
 // Var renders as jsonnet variable reference.
@@ -114,7 +122,7 @@ func (i Index) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return wrap(string(fmt.Sprintf("%s[%s]", string(bytes.TrimSpace(l)), string(bytes.TrimSpace(r))))), nil
+	return wrap(fmt.Sprintf("%s[%s]", string(bytes.TrimSpace(l)), string(bytes.TrimSpace(r)))), nil
 }
 
 // Member renders a dot expression, i.e. foo.bar
@@ -129,11 +137,7 @@ func (m Member) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if requiresEscaping(m.Field) {
-		return wrap(string(fmt.Sprintf("%s[%q]", string(bytes.TrimSpace(l)), m.Field))), nil
-	} else {
-		return wrap(string(fmt.Sprintf("%s.%s", string(bytes.TrimSpace(l)), m.Field))), nil
-	}
+	return wrap(fmt.Sprintf("%s[%q]", string(bytes.TrimSpace(l)), m.Field)), nil
 }
 
 func wrap(s string) []byte {
@@ -180,8 +184,8 @@ func marshal(v interface{}) ([]byte, error) {
 }
 
 func jsonnetFmt(b []byte) ([]byte, error) {
-	// NOP because not implemented yet in go-jsonnet
-	return b, nil
+	s, err := formatter.Format("", string(b), formatter.DefaultOptions())
+	return []byte(s), err
 }
 
 func requiresEscaping(s string) bool {
@@ -190,12 +194,4 @@ func requiresEscaping(s string) bool {
 		return true
 	}
 	return !idRegexp.MatchString(s)
-}
-
-func fieldRef(lhs, field string) string {
-	if requiresEscaping(field) {
-		return fmt.Sprintf("%s[%q]", lhs, field)
-	} else {
-		return fmt.Sprintf("%s.%s", lhs, field)
-	}
 }
