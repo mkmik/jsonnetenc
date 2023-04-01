@@ -19,6 +19,14 @@ var (
 	exprRegexp = regexp.MustCompile(fmt.Sprintf(`"(?U)%s(.*)%s"`, jsonnetEscapeOpen, jsonnetEscapeClose))
 	// we cannot control the rendering of the keys, yet that is needed to generate the short for of: `a: super.a +`
 	superHack = regexp.MustCompile(`"(?U)(.*\+)":`)
+
+	idRegexp            = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
+	reservedIdentifiers = map[string]bool{
+		"assert": true, "else": true, "error": true, "false": true, "for": true,
+		"function": true, "if": true, "import": true, "importstr": true, "importbin": true,
+		"in": true, "local": true, "null": true, "tailstrict": true, "then": true,
+		"self": true, "super": true, "true": true,
+	}
 )
 
 // Import renders as jsonnet import.
@@ -43,6 +51,22 @@ type ImportBin string
 // MarshalJSON implements the json.Marshaler interface
 func (s ImportBin) MarshalJSON() ([]byte, error) {
 	return wrap(fmt.Sprintf("(importbin %q)", s)), nil
+}
+
+// Self with value "foo" renders as "self.foo".
+type Self string
+
+// MarshalJSON implements the json.Marshaler interface
+func (s Self) MarshalJSON() ([]byte, error) {
+	return wrap(fieldRef("self", string(s))), nil
+}
+
+// Super with value "foo" renders as "super.foo".
+type Super string
+
+// MarshalJSON implements the json.Marshaler interface
+func (s Super) MarshalJSON() ([]byte, error) {
+	return wrap(fieldRef("super", string(s))), nil
 }
 
 // Var renders as jsonnet variable reference.
@@ -105,8 +129,11 @@ func (m Member) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return wrap(string(fmt.Sprintf("%s.%s", string(bytes.TrimSpace(l)), m.Field))), nil
+	if requiresEscaping(m.Field) {
+		return wrap(string(fmt.Sprintf("%s[%q]", string(bytes.TrimSpace(l)), m.Field))), nil
+	} else {
+		return wrap(string(fmt.Sprintf("%s.%s", string(bytes.TrimSpace(l)), m.Field))), nil
+	}
 }
 
 func wrap(s string) []byte {
@@ -155,4 +182,20 @@ func marshal(v interface{}) ([]byte, error) {
 func jsonnetFmt(b []byte) ([]byte, error) {
 	// NOP because not implemented yet in go-jsonnet
 	return b, nil
+}
+
+func requiresEscaping(s string) bool {
+	_, reserved := reservedIdentifiers[s]
+	if reserved {
+		return true
+	}
+	return !idRegexp.MatchString(s)
+}
+
+func fieldRef(lhs, field string) string {
+	if requiresEscaping(field) {
+		return fmt.Sprintf("%s[%q]", lhs, field)
+	} else {
+		return fmt.Sprintf("%s.%s", lhs, field)
+	}
 }

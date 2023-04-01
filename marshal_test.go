@@ -9,15 +9,22 @@ import (
 
 func ExampleMarshal() {
 	d := struct {
-		Name     string               `json:"name"`
-		Stuff    jsonnetenc.Import    `json:"stuff"`
-		StuffStr jsonnetenc.ImportStr `json:"stuffstr"`
-		StuffBin jsonnetenc.ImportBin `json:"stuffbin"`
-		Var      jsonnetenc.Var       `json:"var"`
-		Sum      jsonnetenc.Sum       `json:"sum"`
-		Index    jsonnetenc.Index     `json:"index"`
-		Dot      jsonnetenc.Member    `json:"dot"`
-		Hack     string               `json:"hack+"`
+		Name      string               `json:"name"`
+		Stuff     jsonnetenc.Import    `json:"stuff"`
+		StuffStr  jsonnetenc.ImportStr `json:"stuffstr"`
+		StuffBin  jsonnetenc.ImportBin `json:"stuffbin"`
+		Var       jsonnetenc.Var       `json:"var"`
+		Sum       jsonnetenc.Sum       `json:"sum"`
+		Index     jsonnetenc.Index     `json:"index"`
+		Dot       jsonnetenc.Member    `json:"dot"`
+		FieldQuot jsonnetenc.Member    `json:"fieldQuot"`
+		Hack      string               `json:"hack+"`
+		SelfFoo   jsonnetenc.Self      `json:"selffoo"`
+		SelfQuot  jsonnetenc.Self      `json:"selfquot"`
+		SelfRes   jsonnetenc.Self      `json:"selfres"`
+		SuperFoo  jsonnetenc.Super     `json:"superfoo"`
+		SuperQuot jsonnetenc.Super     `json:"superquot"`
+		SuperRes  jsonnetenc.Super     `json:"superres"`
 	}{
 		Name:     "foo",
 		Stuff:    "bar",
@@ -32,9 +39,16 @@ func ExampleMarshal() {
 			struct {
 				X int `json:"x"`
 			}{X: 42}},
-		Index: jsonnetenc.Index{LHS: jsonnetenc.Var("a"), RHS: jsonnetenc.Sum{"k", "e", "y"}},
-		Dot:   jsonnetenc.Member{LHS: jsonnetenc.Var("a"), Field: "field"},
-		Hack:  "foo",
+		Index:     jsonnetenc.Index{LHS: jsonnetenc.Var("a"), RHS: jsonnetenc.Sum{"k", "e", "y"}},
+		Dot:       jsonnetenc.Member{LHS: jsonnetenc.Var("a"), Field: "field"},
+		FieldQuot: jsonnetenc.Member{LHS: jsonnetenc.Var("a"), Field: "1f"},
+		Hack:      "foo",
+		SelfFoo:   "foo",
+		SelfQuot:  "foo-bar",
+		SelfRes:   "self",
+		SuperFoo:  "foo",
+		SuperQuot: "foo-bar",
+		SuperRes:  "self",
 	}
 
 	b, err := jsonnetenc.Marshal(d)
@@ -55,6 +69,13 @@ func ExampleMarshal() {
 	//},
 	//     "index": a["k"+"e"+"y"],
 	//     "dot": a.field,
-	//     hack+: "foo"
+	//     "fieldQuot": a["1f"],
+	//     hack+: "foo",
+	//     "selffoo": self.foo,
+	//     "selfquot": self["foo-bar"],
+	//     "selfres": self["self"],
+	//     "superfoo": super.foo,
+	//     "superquot": super["foo-bar"],
+	//     "superres": super["self"]
 	// }
 }
