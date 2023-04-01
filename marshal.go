@@ -29,6 +29,22 @@ func (s Import) MarshalJSON() ([]byte, error) {
 	return wrap(fmt.Sprintf("(import %q)", s)), nil
 }
 
+// ImportStr renders as jsonnet importstr.
+type ImportStr string
+
+// MarshalJSON implements the json.Marshaler interface
+func (s ImportStr) MarshalJSON() ([]byte, error) {
+	return wrap(fmt.Sprintf("(importstr %q)", s)), nil
+}
+
+// ImportBin renders as jsonnet importbin.
+type ImportBin string
+
+// MarshalJSON implements the json.Marshaler interface
+func (s ImportBin) MarshalJSON() ([]byte, error) {
+	return wrap(fmt.Sprintf("(importbin %q)", s)), nil
+}
+
 // Var renders as jsonnet variable reference.
 type Var string
 
