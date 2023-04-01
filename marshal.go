@@ -82,7 +82,7 @@ type Var string
 
 // MarshalJSON implements the json.Marshaler interface
 func (s Var) MarshalJSON() ([]byte, error) {
-	return wrap(string(s)), nil
+	return wrap(s), nil
 }
 
 // Sum renders a sum expression
@@ -101,7 +101,7 @@ func (s Sum) MarshalJSON() ([]byte, error) {
 		}
 		l = append(l, bytes.TrimSpace(b))
 	}
-	return wrap(string(bytes.Join(l, []byte("+")))), nil
+	return wrap(bytes.Join(l, []byte("+"))), nil
 }
 
 // Index renders a index expression, i.e. foo[bar]
@@ -140,8 +140,12 @@ func (m Member) MarshalJSON() ([]byte, error) {
 	return wrap(fmt.Sprintf("%s[%q]", string(bytes.TrimSpace(l)), m.Field)), nil
 }
 
-func wrap(s string) []byte {
-	return []byte(fmt.Sprintf("%q", fmt.Sprintf("%s%s%s", jsonnetEscapeOpen, s, jsonnetEscapeClose)))
+type wrappable interface {
+	~string | []byte
+}
+
+func wrap[S wrappable](s S) []byte {
+	return []byte(fmt.Sprintf("%q", fmt.Sprintf("%s%s%s", jsonnetEscapeOpen, string(s), jsonnetEscapeClose)))
 }
 
 func unwrap(b []byte) ([]byte, error) {
