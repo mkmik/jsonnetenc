@@ -3,12 +3,12 @@ package jsonnetenc
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/google/go-jsonnet/formatter"
-	"github.com/mkmik/multierror"
 )
 
 const (
@@ -152,7 +152,7 @@ func unwrap(b []byte) ([]byte, error) {
 	var err error
 	r := exprRegexp.ReplaceAllFunc(b, func(i []byte) []byte {
 		var s string
-		err = multierror.Append(err, json.Unmarshal(i, &s))
+		err = errors.Join(err, json.Unmarshal(i, &s))
 		s = strings.TrimPrefix(s, jsonnetEscapeOpen)
 		s = strings.TrimSuffix(s, jsonnetEscapeClose)
 		return []byte(s)
